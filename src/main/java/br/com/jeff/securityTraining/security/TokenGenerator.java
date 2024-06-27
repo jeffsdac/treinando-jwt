@@ -1,4 +1,5 @@
 package br.com.jeff.securityTraining.security;
+import java.util.Base64;
 import java.util.Date;
 
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
@@ -6,7 +7,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.ClaimsMutator;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 
@@ -19,11 +19,13 @@ public class TokenGenerator {
         Date currentDate = new Date();
         Date expiredDate = new Date(currentDate.getTime() + SecurityConstants.JWT_EXPIRATIONS);
 
+        byte[] decodedBytes = Base64.getDecoder().decode(SecurityConstants.JWT_SECRET);
+
         String token = Jwts.builder()
         .setSubject(username)
         .setIssuedAt(currentDate)
         .setExpiration(expiredDate)
-        .signWith(SignatureAlgorithm.HS512, SecurityConstants.JWT_SECRET)
+        .signWith(SignatureAlgorithm.HS512, decodedBytes)
         .compact();
 
         return token;

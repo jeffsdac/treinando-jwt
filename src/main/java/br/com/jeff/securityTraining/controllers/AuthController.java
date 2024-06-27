@@ -13,11 +13,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 import br.com.jeff.securityTraining.Dto.LoginDto;
 import br.com.jeff.securityTraining.Dto.RegisterDto;
+import br.com.jeff.securityTraining.Dto.ResponseAuthDto;
+
 import java.util.Collections;
 import br.com.jeff.securityTraining.entities.Role;
 import br.com.jeff.securityTraining.entities.Usuario;
 import br.com.jeff.securityTraining.repository.RoleRepository;
 import br.com.jeff.securityTraining.repository.UsuarioRepository;
+import br.com.jeff.securityTraining.security.TokenGenerator;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -34,6 +37,9 @@ public class AuthController {
 
     @Autowired
     private PasswordEncoder passEncoder;
+
+    @Autowired
+    private TokenGenerator jwtGenerator;
 
     @PostMapping("/register")
     public ResponseEntity<String> register (@RequestBody RegisterDto registerDto) {
@@ -54,11 +60,12 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> login (@RequestBody LoginDto loginDto){
+    public ResponseEntity<ResponseAuthDto> login (@RequestBody LoginDto loginDto){
         var authentication = authenticationManager.authenticate(
             new UsernamePasswordAuthenticationToken(loginDto.email(), loginDto.password()));
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
-        return ResponseEntity.status(HttpStatus.OK).body("Usuario logado com sucesso");
+        String token = jwtGenerator.generateToken(authentication);
+        return ResponseEntity.status(HttpStatus.OK).body(new ResponseAuthDto(token));
     }
 }
